@@ -20,10 +20,37 @@ func extractTargetHost(path string) (string, string) {
 		return "", ""
 	}
 
-	// Find the first slash after removing the leading slash
-	slashIndex := strings.Index(path, "/")
+	// Handle cases where protocol is included in the path
+	if strings.HasPrefix(strings.ToLower(path), "http:/") || strings.HasPrefix(strings.ToLower(path), "https:/") {
+		// Check if it's http:/ or https:/ format
+		var protocol string
+		var restOfPath string
 
-	// If there's no slash, the entire path is the host
+		if strings.HasPrefix(strings.ToLower(path), "http:/") {
+			protocol = "http://"
+			restOfPath = path[len("http:/"):]
+		} else {
+			protocol = "https://"
+			restOfPath = path[len("https:/"):]
+		}
+
+		// Remove any leading slashes from the rest of the path
+		restOfPath = strings.TrimPrefix(restOfPath, "/")
+
+		// Find the next slash which will separate host from path
+		slashIndex := strings.Index(restOfPath, "/")
+		if slashIndex == -1 {
+			return protocol + restOfPath, "/"
+		}
+
+		host := restOfPath[:slashIndex]
+		remainingPath := "/" + restOfPath[slashIndex:]
+
+		return protocol + host, remainingPath
+	}
+
+	// Original behavior for paths without protocol
+	slashIndex := strings.Index(path, "/")
 	if slashIndex == -1 {
 		return path, "/"
 	}
