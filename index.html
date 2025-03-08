@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>4Word Proxy Game</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+        scroll-behavior: initial;
+      }
+
+      body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: #fff;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* Prevent scrolling */
+      }
+
+      .game-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+        overflow: hidden; /* Prevent scrolling */
+      }
+
+      h1 {
+        font-size: 2.5em;
+        margin-bottom: 0.25rem;
+        background: linear-gradient(45deg, #00b4d8, #90e0ef);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-align: center;
+      }
+
+      .highlight {
+        color: #00b4d8;
+      }
+
+      .how-to-play {
+        color: #90e0ef;
+        text-decoration: none;
+        font-size: 1.1em;
+        margin-bottom: 1.5rem;
+        cursor: pointer;
+        transition: color 0.3s ease;
+      }
+
+      .how-to-play:hover {
+        color: #00b4d8;
+      }
+
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        color: #90e0ef;
+        font-size: 1.5em;
+        cursor: pointer;
+        padding: 0.5rem;
+        line-height: 1;
+        transition: color 0.3s ease;
+      }
+
+      .modal-close:hover {
+        color: #00b4d8;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .stats-container {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin: 1rem 0;
+        width: 100%;
+      }
+
+      .stat-box {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem 2rem;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+        flex: 1;
+        max-width: 200px;
+        text-align: center;
+      }
+
+      .stat-label {
+        font-size: 0.9em;
+        color: #90e0ef;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-value {
+        font-size: 1.5em;
+        font-weight: 600;
+      }
+
+      .game-area {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 1rem;
+        width: 100%;
+        max-width: 800px;
+        margin: 1rem 0;
+        backdrop-filter: blur(10px);
+      }
+
+      .word-chain {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        min-height: 60px;
+        margin: 0.5rem 0;
+        overflow-y: hidden; /* Prevent vertical scrolling */
+      }
+
+      .word {
+        background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 180, 216, 0.2);
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .input-area {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin: 1rem 0;
+      }
+
+      input[type="text"] {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 1.5rem;
+        font-size: 1.1em;
+        border-radius: 12px;
+        color: white;
+        width: 100%;
+        max-width: 300px;
+        transition: all 0.3s ease;
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: #00b4d8;
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      button {
+        background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.1em;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 180, 216, 0.3);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .message {
+        min-height: 24px;
+        color: #90e0ef;
+        text-align: center;
+        margin: 1rem 0;
+        font-size: 1.1em;
+      }
+
+      .rules {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+      }
+
+      .rules h3 {
+        color: #00b4d8;
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+
+      .rules ol {
+        padding-left: 1.5rem;
+        line-height: 1.8;
+      }
+
+      footer {
+        text-align: center;
+        padding: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      .timer-bar {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        margin: 1rem 0;
+        overflow: hidden;
+      }
+
+      .timer-progress {
+        height: 100%;
+        background: linear-gradient(90deg, #00b4d8, #0077b6);
+        width: 100%;
+        transition: width 1s linear;
+      }
+
+      @media (max-width: 768px) {
+        .game-container {
+          padding: 1rem;
+        }
+
+        h1 {
+          font-size: 2.5em;
+        }
+
+        .stats-container {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .stat-box {
+          width: 100%;
+          max-width: none;
+        }
+
+        .modal {
+          width: 95%;
+          margin: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <h1>4<span class="highlight">Word</span> Proxy Chain</h1>
+      <a class="how-to-play" id="how-to-play">How to Play</a>
+
+      <div class="stats-container">
+        <div class="stat-box">
+          <div class="stat-label">Score</div>
+          <div class="stat-value" id="score">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Chain Length</div>
+          <div class="stat-value" id="chain-length">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Time Left</div>
+          <div class="stat-value" id="time-left">25</div>
+        </div>
+      </div>
+
+      <div class="game-area">
+        <div class="timer-bar">
+          <div class="timer-progress" id="timer-progress"></div>
+        </div>
+
+        <div class="word-chain" id="word-chain">
+          <!-- Words will be added here -->
+        </div>
+
+        <div class="input-area">
+          <input
+            type="text"
+            id="word-input"
+            placeholder="Enter a 4-letter word"
+            maxlength="4"
+            autocomplete="off"
+          />
+          <button id="submit-btn">Submit</button>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <button id="new-game-btn">New Game</button>
+      </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div class="modal-overlay" id="rules-modal">
+      <div class="modal">
+        <button class="modal-close" id="close-modal">×</button>
+        <div class="rules">
+          <h3>Game Rules</h3>
+          <ol>
+            <li>The game starts with a random 4-letter word</li>
+            <li>Change exactly ONE letter to make a new valid word</li>
+            <li>Each valid word adds points based on speed:</li>
+            <li>Score = Base(10) + Time Bonus(0-25)</li>
+            <li>You have 25 seconds for each word</li>
+            <li>Challenge: Create the longest chain possible!</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- Word list library -->
+    <script src="https://cdn.jsdelivr.net/npm/word-list-json@1.0.0/words.json"></script>
+
+    <script>
+      // Initialize word list
+      let fourLetterWords = [];
+
+      // Fetch the comprehensive word list
+      fetch(
+        "https://raw.githubusercontent.com/words/an-array-of-english-words/master/index.json"
+      )
+        .then((response) => response.json())
+        .then((words) => {
+          fourLetterWords = words.filter((word) => word.length === 4);
+          console.log(`Loaded ${fourLetterWords.length} 4-letter words`);
+          initGame();
+        })
+        .catch((error) => {
+          console.error("Error loading word list:", error);
+          // Fallback to basic word list if fetch fails
+          initGame();
+        });
+
+      let currentWord = "";
+      let wordChain = [];
+      let score = 0;
+      let timer = null;
+      let timeLeft = 25;
+
+      // DOM elements
+      const wordChainElement = document.getElementById("word-chain");
+      const wordInputElement = document.getElementById("word-input");
+      const submitButton = document.getElementById("submit-btn");
+      const messageElement = document.getElementById("message");
+      const scoreElement = document.getElementById("score");
+      const chainLengthElement = document.getElementById("chain-length");
+      const timeLeftElement = document.getElementById("time-left");
+      const timerProgressElement = document.getElementById("timer-progress");
+      const newGameButton = document.getElementById("new-game-btn");
+
+      function startTimer() {
+        clearInterval(timer);
+        timeLeft = 25;
+        updateTimerDisplay();
+
+        timer = setInterval(() => {
+          timeLeft--;
+          updateTimerDisplay();
+
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            messageElement.textContent = "Time's up! Start a new game.";
+            wordInputElement.disabled = true;
+            submitButton.disabled = true;
+          }
+        }, 1000);
+      }
+
+      function updateTimerDisplay() {
+        timeLeftElement.textContent = timeLeft;
+        const progress = (timeLeft / 25) * 100;
+        timerProgressElement.style.width = `${progress}%`;
+      }
+
+      function initGame() {
+        wordChain = [];
+        score = 0;
+        wordChainElement.innerHTML = "";
+        wordInputElement.disabled = false;
+        submitButton.disabled = false;
+
+        currentWord = getRandomWord();
+        addWordToChain(currentWord);
+
+        updateScore();
+        startTimer();
+
+        messageElement.textContent =
+          "Game started! Change one letter at a time.";
+        wordInputElement.value = "";
+        wordInputElement.focus();
+      }
+
+      function getRandomWord() {
+        const randomIndex = Math.floor(Math.random() * fourLetterWords.length);
+        return fourLetterWords[randomIndex];
+      }
+
+      function addWordToChain(word) {
+        wordChain.push(word);
+        currentWord = word;
+
+        const wordElement = document.createElement("div");
+        wordElement.classList.add("word");
+        wordElement.textContent = word;
+        wordChainElement.appendChild(wordElement);
+
+        // Scroll to the latest word
+        wordChainElement.scrollLeft = wordChainElement.scrollWidth;
+      }
+
+      function updateScore() {
+        const baseScore = wordChain.length * 10;
+        const timeBonus = timeLeft;
+        score = baseScore + timeBonus;
+        scoreElement.textContent = score;
+        chainLengthElement.textContent = wordChain.length;
+      }
+
+      function differsByOneLetter(word1, word2) {
+        if (word1.length !== word2.length) return false;
+
+        let diffCount = 0;
+        for (let i = 0; i < word1.length; i++) {
+          if (word1[i] !== word2[i]) {
+            diffCount++;
+          }
+        }
+
+        return diffCount === 1;
+      }
+
+      function isValidWord(word) {
+        if (word.length !== 4) {
+          messageElement.textContent = "Words must be exactly 4 letters long!";
+          return false;
+        }
+
+        if (wordChain.includes(word)) {
+          messageElement.textContent = "You've already used this word!";
+          return false;
+        }
+
+        if (!differsByOneLetter(currentWord, word)) {
+          messageElement.textContent = "Change exactly ONE letter!";
+          return false;
+        }
+
+        if (!fourLetterWords.includes(word.toLowerCase())) {
+          messageElement.textContent = "Not a valid word in our dictionary!";
+          return false;
+        }
+
+        return true;
+      }
+
+      submitButton.addEventListener("click", function () {
+        if (timeLeft <= 0) return;
+
+        const inputWord = wordInputElement.value.toLowerCase();
+
+        if (isValidWord(inputWord)) {
+          addWordToChain(inputWord);
+          updateScore();
+          startTimer(); // Reset timer for next word
+          messageElement.textContent = "Great! Keep going!";
+          wordInputElement.value = "";
+        }
+
+        wordInputElement.focus();
+      });
+
+      wordInputElement.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+          submitButton.click();
+        }
+      });
+
+      newGameButton.addEventListener("click", initGame);
+
+      // Add modal functionality
+      const modal = document.getElementById("rules-modal");
+      const howToPlayBtn = document.getElementById("how-to-play");
+      const closeModalBtn = document.getElementById("close-modal");
+
+      howToPlayBtn.addEventListener("click", () => {
+        modal.style.display = "flex";
+      });
+
+      closeModalBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+      });
+
+      // Close modal when clicking outside
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          modal.style.display = "none";
+        }
+      });
+
+      // Close modal with Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.style.display === "flex") {
+          modal.style.display = "none";
+        }
+      });
+
+      // Start loading the game (actual start happens after word list is loaded)
+      messageElement.textContent = "Loading word dictionary...";
+    </script>
+  </body>
+</html>
