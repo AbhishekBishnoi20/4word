@@ -4,6 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile
     expose:
-      - "8080"
+      - "4444"
     container_name: 4word-app
     restart: unless-stopped
