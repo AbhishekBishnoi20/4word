@@ -47,19 +47,23 @@ func serveIndexHTML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Serve the file
-	http.ServeFile(w, r, indexPath)
-}
-
-func proxyHandler(w http.ResponseWriter, r *http.Request) {
-	// Set CORS headers for all responses
+	// Set CORS headers for index.html response
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "*")
 	w.Header().Set("Access-Control-Max-Age", "86400")
 
+	// Serve the file
+	http.ServeFile(w, r, indexPath)
+}
+
+func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	// Handle OPTIONS request
 	if r.Method == "OPTIONS" {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Max-Age", "86400")
 		w.WriteHeader(http.StatusOK)
 		return
 	}
@@ -143,7 +147,7 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 		// No timeout set to allow for long-running connections like SSE
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			// Get the location header
-			location := req.Response.Header.Get("Location")
+		 location := req.Response.Header.Get("Location")
 
 			// If the location is a relative URL, let the default redirect handling work
 			if !strings.HasPrefix(location, "http://") && !strings.HasPrefix(location, "https://") {
@@ -199,6 +203,12 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add(name, value)
 		}
 	}
+
+	// Set CORS headers after copying target headers to ensure they take precedence
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Max-Age", "86400")
 
 	// For streaming responses, ensure we're not buffering
 	if isStreaming {
