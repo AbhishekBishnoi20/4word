@@ -20,7 +20,7 @@ WORKDIR /app
 COPY --from=builder /app/4word .
 
 # Expose the default port
-EXPOSE 8080
+EXPOSE 4444
 
 # Run the binary
 CMD ["./4word"]
